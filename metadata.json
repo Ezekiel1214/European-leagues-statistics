@@ -1,0 +1,5 @@
+{
+  "name": "AI Web Builder Pipeline",
+  "description": "A conceptual demonstration of the 'One Brain, Seven Hands' multi-agent AI pipeline for website generation, as described in the AIWebBuilder Pro PRD. This applet visualizes the step-by-step process of AI agents collaborating to build a web component based on a user's prompt.",
+  "requestFramePermissions": []
+}

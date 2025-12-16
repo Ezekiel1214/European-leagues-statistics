@@ -1,0 +1,53 @@
+
+<div class="flex items-center justify-center space-x-2 md:space-x-4 p-4 rounded-xl bg-gray-800/50">
+  @for (agent of agents(); track agent.name; let i = $index) {
+    <div class="flex items-center">
+      <div class="flex flex-col items-center relative group cursor-pointer">
+        <div class="rounded-full transition-all duration-300 w-12 h-12 md:w-16 md:h-16 flex items-center justify-center"
+             [class.bg-indigo-500]="agent.status === 'active'"
+             [class.ring-2]="agent.status === 'active'"
+             [class.ring-indigo-400]="agent.status === 'active'"
+             [class.animate-pulse]="agent.status === 'active'"
+             [class.bg-green-500]="agent.status === 'complete'"
+             [class.bg-red-500]="agent.status === 'error'"
+             [class.bg-gray-700]="agent.status === 'pending'">
+             
+          @if(agent.status === 'pending') {
+            <span class="text-gray-400 text-2xl font-bold">{{ i + 1 }}</span>
+          }
+          @if(agent.status === 'active') {
+             <svg class="animate-spin h-6 w-6 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+             </svg>
+          }
+           @if(agent.status === 'complete') {
+            <svg class="h-6 w-6 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+            </svg>
+          }
+          @if(agent.status === 'error') {
+            <svg class="h-6 w-6 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+            </svg>
+          }
+
+        </div>
+        <p class="text-center text-xs mt-2 w-20 md:w-24 text-gray-400">{{ agent.name }}</p>
+
+        <!-- Tooltip -->
+        <div class="absolute bottom-full mb-2 w-48 bg-gray-900 text-white text-xs rounded-lg py-2 px-3 text-center z-10 opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none">
+          {{ agent.description }}
+          <svg class="absolute text-gray-900 h-2 w-full left-0 top-full" x="0px" y="0px" viewBox="0 0 255 255" xml:space="preserve"><polygon class="fill-current" points="0,0 127.5,127.5 255,0"/></svg>
+        </div>
+
+      </div>
+      
+      @if (!$last) {
+        <div class="flex-auto border-t-2 transition-all duration-500 ease-in-out mx-2 md:mx-4 w-6 md:w-12"
+             [class.border-green-500]="i < activeAgentIndex() || agent.status === 'complete'"
+             [class.border-gray-700]="i >= activeAgentIndex() && agent.status !== 'complete'"></div>
+      }
+    </div>
+  }
+</div>

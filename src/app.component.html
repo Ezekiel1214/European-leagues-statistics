@@ -1,0 +1,119 @@
+
+<main class="min-h-screen bg-gray-900 text-gray-100 flex flex-col items-center p-4 sm:p-6 md:p-8">
+  <div class="w-full max-w-5xl mx-auto">
+    <!-- Header -->
+    <header class="text-center mb-8">
+      <h1 class="text-4xl sm:text-5xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-indigo-400 to-purple-500">
+        AIWebBuilder Pro
+      </h1>
+      <p class="mt-2 text-lg text-gray-400">Multi-Agent Pipeline Demo</p>
+    </header>
+
+    @if (isApiKeyMissing()) {
+      <div class="bg-red-900/50 border border-red-700 text-red-200 px-4 py-3 rounded-lg relative text-center" role="alert">
+        <strong class="font-bold">Configuration Error!</strong>
+        <span class="block sm:inline ml-2">Google Gemini API key is missing. Please set the API_KEY environment variable.</span>
+      </div>
+    } @else {
+      <!-- Prompt Input -->
+      <div class="bg-gray-800/50 p-6 rounded-2xl shadow-lg mb-8">
+        <label for="prompt-input" class="block text-sm font-medium text-gray-300 mb-2">
+          Describe the web component you want to build:
+        </label>
+        <textarea id="prompt-input"
+                  rows="3"
+                  class="w-full bg-gray-900 border border-gray-700 rounded-lg p-3 text-gray-200 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-shadow"
+                  placeholder="e.g., A pricing table with three tiers..."
+                  [(ngModel)]="prompt"></textarea>
+        <button (click)="runPipeline()"
+                [disabled]="isLoading() || !prompt().trim()"
+                class="mt-4 w-full flex items-center justify-center bg-indigo-600 hover:bg-indigo-700 disabled:bg-indigo-900/50 disabled:text-gray-500 disabled:cursor-not-allowed text-white font-bold py-3 px-4 rounded-lg transition-all duration-300 ease-in-out transform hover:scale-105 active:scale-100">
+          @if (isLoading()) {
+            <svg class="animate-spin -ml-1 mr-3 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+              <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+              <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+            </svg>
+            <span>Processing...</span>
+          } @else {
+            <span>Generate with AI Pipeline</span>
+          }
+        </button>
+      </div>
+
+      <!-- Agent Pipeline Visualization -->
+      <div class="mb-8">
+        <app-agent-pipeline [agents]="agents()" [activeAgentIndex]="activeAgentIndex()" />
+      </div>
+
+      <!-- Error Display -->
+      @if (error()) {
+        <div class="bg-red-900/50 border border-red-700 text-red-200 px-4 py-3 rounded-lg relative text-center mb-8" role="alert">
+          <strong class="font-bold">Pipeline Error!</strong>
+          <span class="block sm:inline ml-2">{{ error() }}</span>
+        </div>
+      }
+
+      <!-- Results -->
+      <section class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        @for (agent of agents(); track agent.name) {
+          @if (agent.status !== 'pending') {
+            <div class="bg-gray-800/50 rounded-2xl shadow-lg overflow-hidden transition-all duration-500 animate-fade-in border"
+                 [class.border-transparent]="agent.status === 'complete'"
+                 [class.border-red-700]="agent.status === 'error'"
+                 [class.border-indigo-700]="agent.status === 'active'">
+              <div class="p-5">
+                <div class="flex items-center mb-3">
+                   @if (agent.status === 'complete') {
+                    <div class="w-8 h-8 rounded-full bg-green-500/20 flex items-center justify-center mr-3">
+                      <svg class="w-5 h-5 text-green-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" /></svg>
+                    </div>
+                  } @else if (agent.status === 'error') {
+                     <div class="w-8 h-8 rounded-full bg-red-500/20 flex items-center justify-center mr-3">
+                      <svg class="w-5 h-5 text-red-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" /></svg>
+                    </div>
+                  } @else if (agent.status === 'active') {
+                    <div class="w-8 h-8 rounded-full bg-indigo-500/20 flex items-center justify-center mr-3">
+                      <svg class="animate-spin w-5 h-5 text-indigo-400" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                        <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                      </svg>
+                    </div>
+                  }
+                  <h3 class="text-lg font-semibold text-gray-100">{{ agent.name }}</h3>
+                </div>
+
+                @if (agent.status === 'active') {
+                  <div class="text-sm bg-gray-900/70 p-4 rounded-lg border border-gray-700 h-64 flex flex-col items-center justify-center">
+                      <div class="w-10 h-10 border-4 border-t-transparent border-indigo-400 rounded-full animate-spin"></div>
+                      <p class="mt-4 text-gray-400">Processing...</p>
+                  </div>
+                } @else {
+                  @if (agent.name === 'Code Generator' && agent.status === 'complete') {
+                      <div class="mt-4 bg-gray-900 rounded-lg p-4 border border-gray-700 h-64 overflow-auto">
+                          <iframe [srcdoc]="agent.output" class="w-full h-full bg-white rounded" title="Generated Code Preview"></iframe>
+                      </div>
+                  } @else {
+                    <div class="text-sm whitespace-pre-wrap bg-gray-900/70 p-4 rounded-lg border border-gray-700 max-h-64 overflow-y-auto font-mono"
+                         [class.text-red-300]="agent.status === 'error'"
+                         [class.text-gray-300]="agent.status !== 'error'">
+                      {{ agent.output }}
+                    </div>
+                  }
+                }
+              </div>
+            </div>
+          }
+        }
+      </section>
+    }
+  </div>
+</main>
+<style>
+  .animate-fade-in {
+    animation: fadeIn 0.5s ease-in-out;
+  }
+  @keyframes fadeIn {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+</style>
